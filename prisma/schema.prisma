@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  name          String?
+  password      String
+  walletTokens  BigInt    @default(0)
+  totalSpent    Float     @default(0.0)
+  isAdmin       Boolean   @default(false)
+  purchases     Purchase[]
+  aiUsageLogs   AiUsageLog[]
+  costTracking  CostTracking?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Purchase {
+  id           Int      @id @default(autoincrement())
+  tokenAmount  BigInt
+  pricePaid    Float
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int
+}
+
+model Model {
+  name         String    @id
+  costPerUse   Float
+  tokenCost    BigInt
+  aiUsageLogs  AiUsageLog[]
+}
+
+model AiUsageLog {
+  id           Int      @id @default(autoincrement())
+  tokensUsed   BigInt
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int
+  model        Model    @relation(fields: [modelName], references: [name])
+  modelName    String
+}
+
+model CostTracking {
+  id                 Int     @id @default(autoincrement())
+  totalTokensUsed    BigInt  @default(0)
+  totalCostToOwner   Float   @default(0.0)
+  user               User    @relation(fields: [userId], references: [id])
+  userId             Int     @unique
+}
